@@ -47,6 +47,16 @@ namespace NUnit.TestData.RepeatingTests
         }
     }
 
+    public class RetryFailsEveryTimeWithExceptionFixture : RepeatingTestsFixtureBase
+    {
+        [Test, Retry(3, typeof(Exception))]
+        public void FailsEveryTime()
+        {
+            Count++;
+            throw new Exception("Deliberate Exception");
+        }
+    }
+
     public class RetrySucceedsOnSecondTryFixture : RepeatingTestsFixtureBase
     {
         [Test, Retry(3)]
@@ -59,6 +69,18 @@ namespace NUnit.TestData.RepeatingTests
         }
     }
 
+    public class RetrySucceedsOnSecondTryWithExceptionFixture : RepeatingTestsFixtureBase
+    {
+        [Test, Retry(3, typeof(Exception))]
+        public void SucceedsOnSecondTry()
+        {
+            Count++;
+
+            if (Count < 2)
+                throw new Exception("Deliberate Exception");
+        }
+    }
+
     public class RetrySucceedsOnThirdTryFixture : RepeatingTestsFixtureBase
     {
         [Test, Retry(3)]
@@ -68,6 +90,18 @@ namespace NUnit.TestData.RepeatingTests
 
             if (Count < 3)
                 Assert.IsTrue(false);
+        }
+    }
+
+    public class RetrySucceedsOnThirdTryWithExceptionFixture : RepeatingTestsFixtureBase
+    {
+        [Test, Retry(3, typeof(Exception))]
+        public void SucceedsOnThirdTry()
+        {
+            Count++;
+
+            if (Count < 3)
+                throw new Exception("Deliberate Exception");
         }
     }
 

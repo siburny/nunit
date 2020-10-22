@@ -37,6 +37,7 @@ namespace NUnit.Framework.Attributes
         [TestCase(typeof(RetrySucceedsOnSecondTryFixture), "Passed", 2)]
         [TestCase(typeof(RetrySucceedsOnThirdTryFixture), "Passed", 3)]
         [TestCase(typeof(RetryFailsEveryTimeFixture), "Failed(Child)", 3)]
+        [TestCase(typeof(RetryFailsEveryTimeWithExceptionFixture), "Failed(Child)", 3)]
         [TestCase(typeof(RetryWithIgnoreAttributeFixture), "Skipped:Ignored(Child)", 0)]
         [TestCase(typeof(RetryIgnoredOnFirstTryFixture), "Skipped:Ignored(Child)", 1)]
         [TestCase(typeof(RetryIgnoredOnSecondTryFixture), "Skipped:Ignored(Child)", 2)]
@@ -60,7 +61,9 @@ namespace NUnit.Framework.Attributes
 
         [TestCase(typeof(RetrySucceedsOnFirstTryFixture), "Passed")]
         [TestCase(typeof(RetrySucceedsOnSecondTryFixture), "Failed", "Passed")]
+        [TestCase(typeof(RetrySucceedsOnSecondTryWithExceptionFixture), "Failed:Error", "Passed")]
         [TestCase(typeof(RetrySucceedsOnThirdTryFixture), "Failed", "Failed", "Passed")]
+        [TestCase(typeof(RetrySucceedsOnThirdTryWithExceptionFixture), "Failed:Error", "Failed:Error", "Passed")]
         [TestCase(typeof(RetryFailsEveryTimeFixture), "Failed", "Failed", "Failed")]
         [TestCase(typeof(RetryIgnoredOnFirstTryFixture), "Skipped:Ignored")]
         [TestCase(typeof(RetryIgnoredOnSecondTryFixture), "Failed", "Skipped:Ignored")]

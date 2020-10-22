@@ -24,6 +24,7 @@
 #nullable enable
 
 using System;
+using System.Runtime.InteropServices;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using NUnit.Framework.Internal.Commands;
@@ -38,14 +39,17 @@ namespace NUnit.Framework
     public class RetryAttribute : NUnitAttribute, IRepeatTest
     {
         private readonly int _tryCount;
+        private readonly Type? _exceptionType;
 
         /// <summary>
         /// Construct a <see cref="RetryAttribute" />
         /// </summary>
         /// <param name="tryCount">The maximum number of times the test should be run if it fails</param>
-        public RetryAttribute(int tryCount)
+        /// <param name="exceptionType">The exception type that the test should be retried when thrown</param>
+        public RetryAttribute(int tryCount, Type? exceptionType = null)
         {
             _tryCount = tryCount;
+            _exceptionType = exceptionType;
         }
 
         #region IRepeatTest Members
@@ -57,7 +61,7 @@ namespace NUnit.Framework
         /// <returns>The wrapped command</returns>
         public TestCommand Wrap(TestCommand command)
         {
-            return new RetryCommand(command, _tryCount);
+            return new RetryCommand(command, _tryCount, _exceptionType);
         }
 
         #endregion
@@ -70,16 +74,19 @@ namespace NUnit.Framework
         public class RetryCommand : DelegatingTestCommand
         {
             private readonly int _tryCount;
+            private readonly Type? _exceptionType;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="RetryCommand"/> class.
             /// </summary>
             /// <param name="innerCommand">The inner command.</param>
             /// <param name="tryCount">The maximum number of repetitions</param>
-            public RetryCommand(TestCommand innerCommand, int tryCount)
+            /// <param name="exceptionType">The exception type that the test should be retried when thrown</param>
+            public RetryCommand(TestCommand innerCommand, int tryCount, Type? exceptionType)
                 : base(innerCommand)
             {
                 _tryCount = tryCount;
+                _exceptionType = exceptionType;
             }
 
             /// <summary>
@@ -101,11 +108,19 @@ namespace NUnit.Framework
                     // and we want to look at restructuring the API in the future.
                     catch (Exception ex)
                     {
-                        if (context.CurrentResult == null) context.CurrentResult = context.CurrentTest.MakeTestResult();
-                        context.CurrentResult.RecordException(ex);
+                        if (_exceptionType == null || ex.GetType() != _exceptionType)
+                        {
+                            if (context.CurrentResult == null) context.CurrentResult = context.CurrentTest.MakeTestResult();
+                            context.CurrentResult.RecordException(ex);
+                        }
                     }
 
-                    if (context.CurrentResult.ResultState != ResultState.Failure)
+                    if (context.CurrentResult.ResultState != ResultState.Failure
+                        && !(
+                            context.CurrentResult.ResultState == ResultState.Error
+                            && _exceptionType != null && context.CurrentResult.Message != null &&
+                            context.CurrentResult.Message.StartsWith(_exceptionType.FullName + " :"))
+                            )
                         break;
 
                     // Clear result for retry
